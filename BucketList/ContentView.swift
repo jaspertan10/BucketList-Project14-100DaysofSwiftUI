@@ -12,8 +12,14 @@ import SwiftUI
 
 struct ContentView: View {
     
+    //UK
+//    let startPosition = MapCameraPosition.region(
+//            MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 56, longitude: -3), span: MKCoordinateSpan(latitudeDelta: 10, longitudeDelta: 10))
+//        )
+    
+    //Japan - Shinjuku
     let startPosition = MapCameraPosition.region(
-        MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 56, longitude: -3), span: MKCoordinateSpan(latitudeDelta: 10, longitudeDelta: 10))
+        MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 35.7, longitude: 139.7), span: MKCoordinateSpan(latitudeDelta: 10, longitudeDelta: 10))
     )
     
     @State private var locations = [Location]()
