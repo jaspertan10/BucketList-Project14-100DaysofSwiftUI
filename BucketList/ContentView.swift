@@ -11,26 +11,19 @@ import SwiftUI
 
 
 struct ContentView: View {
-    
-    //UK
-//    let startPosition = MapCameraPosition.region(
-//            MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 56, longitude: -3), span: MKCoordinateSpan(latitudeDelta: 10, longitudeDelta: 10))
-//        )
-    
+
     //Japan - Shinjuku
     let startPosition = MapCameraPosition.region(
-        MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 35.7, longitude: 139.7), span: MKCoordinateSpan(latitudeDelta: 10, longitudeDelta: 10))
+        MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 35.7, longitude: 139.7), span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1))
     )
     
-    @State private var locations = [Location]()
-    
-    @State private var selectedPlace: Location?
+    @State private var viewModel = ViewModel()
     
     var body: some View {
         
         MapReader { proxy in
             Map(initialPosition: startPosition) {
-                ForEach(locations) { location in
+                ForEach(viewModel.locations) { location in
                     //Marker(location.name, coordinate: CLLocationCoordinate2D(latitude: location.latitude, longitude: location.longitude))
                     Annotation(location.name, coordinate: location.coordinate) {
                         Image(systemName: "star.circle")
@@ -40,22 +33,21 @@ struct ContentView: View {
                             .background(.white)
                             .clipShape(.circle)
                             .simultaneousGesture(LongPressGesture(minimumDuration: 0.4).onEnded({ _ in
-                                selectedPlace = location
+                                viewModel.selectedPlace = location
                             }))
                     }
                 }
             }
             .onTapGesture { position in
                 if let coordinate = proxy.convert(position, from: .local) {
-                    let newLocation = Location(id: UUID(), name: "New Location", description: "", latitude: coordinate.latitude, longitude: coordinate.longitude)
-                    locations.append(newLocation)
+                    viewModel.addLocation(at: coordinate)
+                    viewModel.save()
                 }
             }
-            .sheet(item: $selectedPlace) { place in
+            .sheet(item: $viewModel.selectedPlace) { place in
                 EditView(location: place) { newLocation in
-                    if let index = locations.firstIndex(of: place) {
-                        locations[index] = newLocation
-                    }
+                    viewModel.update(location: newLocation)
+                    viewModel.save()
                 }
             }
         }
