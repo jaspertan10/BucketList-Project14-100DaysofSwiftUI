@@ -19,47 +19,57 @@ struct ContentView: View {
     
     @State private var viewModel = ViewModel()
     
+    
     var body: some View {
         
-        if viewModel.isUnlocked {
-            MapReader { proxy in
-                Map(initialPosition: startPosition) {
-                    ForEach(viewModel.locations) { location in
-                        //Marker(location.name, coordinate: CLLocationCoordinate2D(latitude: location.latitude, longitude: location.longitude))
-                        Annotation(location.name, coordinate: location.coordinate) {
-                            Image(systemName: "star.circle")
-                                .resizable()
-                                .foregroundStyle(.red)
-                                .frame(width: 44, height: 44)
-                                .background(.white)
-                                .clipShape(.circle)
-                                .simultaneousGesture(LongPressGesture(minimumDuration: 0.4).onEnded({ _ in
-                                    viewModel.selectedPlace = location
-                                }))
+        NavigationStack {
+            if viewModel.isUnlocked {
+                MapReader { proxy in
+                    Map(initialPosition: startPosition) {
+                        ForEach(viewModel.locations) { location in
+                            //Marker(location.name, coordinate: CLLocationCoordinate2D(latitude: location.latitude, longitude: location.longitude))
+                            Annotation(location.name, coordinate: location.coordinate) {
+                                Image(systemName: "star.circle")
+                                    .resizable()
+                                    .foregroundStyle(.red)
+                                    .frame(width: 44, height: 44)
+                                    .background(.white)
+                                    .clipShape(.circle)
+                                    .simultaneousGesture(LongPressGesture(minimumDuration: 0.4).onEnded({ _ in
+                                        viewModel.selectedPlace = location
+                                    }))
+                            }
+                        }
+                    }
+                    .onTapGesture { position in
+                        if let coordinate = proxy.convert(position, from: .local) {
+                            viewModel.addLocation(at: coordinate)
+                            viewModel.save()
+                        }
+                    }
+                    .sheet(item: $viewModel.selectedPlace) { place in
+                        EditView(location: place) { newLocation in
+                            viewModel.update(location: newLocation)
+                            viewModel.save()
+                        }
+                    }
+                    .mapStyle(viewModel.mapStyle == "Standard" ? MapStyle.standard : MapStyle.hybrid)
+                    .toolbar {
+                        Button(viewModel.mapStyle == "Standard" ? "Hybrid" : "Standard") {
+                            viewModel.swapMapStyle()
                         }
                     }
                 }
-                .onTapGesture { position in
-                    if let coordinate = proxy.convert(position, from: .local) {
-                        viewModel.addLocation(at: coordinate)
-                        viewModel.save()
-                    }
+                
+            } else {
+                Button("Unlock Places") {
+                    viewModel.authenticate()
                 }
-                .sheet(item: $viewModel.selectedPlace) { place in
-                    EditView(location: place) { newLocation in
-                        viewModel.update(location: newLocation)
-                        viewModel.save()
-                    }
-                }
+                .padding()
+                .background(.blue)
+                .foregroundStyle(.white)
+                .clipShape(.capsule)
             }
-        } else {
-            Button("Unlock Places") {
-                viewModel.authenticate()
-            }
-            .padding()
-            .background(.blue)
-            .foregroundStyle(.white)
-            .clipShape(.capsule)
         }
     }
 }
