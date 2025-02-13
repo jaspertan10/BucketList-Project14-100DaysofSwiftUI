@@ -21,10 +21,13 @@ extension ContentView {
         private(set) var locations: [Location]
         var selectedPlace: Location?
         
-        //var isUnlocked = false
-        var isUnlocked = true
+        var isUnlocked = false
         
         var mapStyle = "Standard"
+        
+        // Biometric authentication alerts
+        var biometricErrorAlert = false
+        var biometricErrorMessage = ""
     
         init() {
             do {
@@ -68,11 +71,15 @@ extension ContentView {
                     if success {
                         self.isUnlocked = true
                     } else {
-                        // error
+                        print(String(describing: authenticationError))
+                        self.biometricErrorAlert = true
+                        self.biometricErrorMessage = "User Authentication Error"
                     }
                 }
             } else {
-                // no biometrics available
+                print(String(describing: error))
+                self.biometricErrorAlert = true
+                self.biometricErrorMessage = "Authentication not possible on this device"
             }
         }
         
